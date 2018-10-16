@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title></title>
+		<style>
+
+		</style>
+	</head>
+	<script src="https://payment.ftluat.com.hk/checkout/version/42/checkout.js" 
+		data-error="errorCallback" data-cancel="cancelCallback" data-complete="completeCallback"></script>
+	<!--<script src="ftpaysupportt.js" 
+		data-error="errorCallback" data-cancel="cancelCallback" data-complete="completeCallback"></script>-->
+	<script>
+		function errorCallback(error){//支付错误后的回调函数
+			console.log("error")
+		};
+		function cancelCallback(){//支付取消后的回调函数
+			console.log("Payment cancelled")
+		};
+		function completeCallback(){//支付完成后的回调函数
+			console.log("Payment completed");
+		};
+		function begin(){
+			var numbee=ran();
+			Checkout.configure({
+				id:numbee,//订单号，用户可自定义订单号
+				amount:function(){return 999},
+				currency:"HKD",
+				description:"Renewal Premium",
+				PolicyNo:"5555555555"
+			})
+		}	
+	</script>
+	<body>
+		<input type="button" value="Pay with FTpay" onclick="begin()" />
+	</body>
+</html>
