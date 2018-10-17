@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title></title>
+		<meta name="viewport" content="width=device-width, initial-scale=1 user-scalable=0">
+		<script>
+			(function(){
+				function x(){
+					var offWidth = window.screen.width/30; 
+			        document.getElementsByTagName("html")[0].style.fontSize=offWidth+'px'; 
+				}
+		        window.addEventListener("resize",function(){
+		        	x();
+		        },false)
+		        x();
+			})()
+	    </script>
+		<link rel="stylesheet" href="css/index.css" />
+	</head>
+	<body>
+		<div class="one">
+			<p><i class="iconfont">&#xe6b0;</i>选择支付方式</p>
+		</div>
+		<div class="two">
+			<p>交通意外综合险</p>
+			<p><span>￥</span>6000.00</p>
+			<p>下单时间：2017-12-12  18:23:22</p>
+		</div>
+		<div class="three">
+			<ul>
+				<li><p class="spep">支付方式</p></li>
+				<li class="li1"><span><i class="iconfont">&#xe678;</i>微信支付</span><div class="che1"><i class="iconfont">&#xe679;</i></div></li>
+				<li class="li1"><span><i class="iconfont">&#xe686;</i>支付宝支付</span><div class="che1"><i class="iconfont">&#xe679;</i></div></li>
+				<li class="li1"><span><i class="iconfont spe">&#xe676;</i>银行卡支付</span><div class="che1"><i class="iconfont">&#xe679;</i></div></li>
+			</ul>
+			
+		</div>
+		<div class="four">
+			<span class="btn1">下一步</span>
+			<span class="btn2">确认支付</span>
+		</div>
+		<div id="back"></div>
+	</body>
+</html>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/zepto/1.2.0/zepto.js"></script>
+
+<script>
+var num=parseInt(Math.random()*10);
+var flagx=true;
+if(num<5){
+	$(".li1").eq(2).css("display","block");
+	$(".btn2").css("display","none");
+	$(".btn1").css("display","block");
+}else{
+	$(".li1").eq(0).css("display","block");
+	$(".li1").eq(1).css("display","block");
+	$(".btn1").css("display","none");
+	$(".btn2").css("display","block");
+}
+$(".li1").eq(0).bind("click",function(){
+	flagx=true;
+});
+$(".li1").eq(1).bind("click",function(){
+	flagx=false;
+});
+$(".li1").bind("click", function() {
+	$(".li1").children(".che1").css("display","none")
+	$(this).children(".che1").css("display","block");
+});
+$(".btn2").bind("click",function(){
+	if(flagx){
+		gzhPay();
+	}else{
+		zfbpay();
+	}
+});
+$(".btn1").bind("click",function(){
+	
+})
+var msg={
+        "data":{
+            "app_id": "22",
+            "platform_code": "平台标识",
+            "insurer_id": "33",
+            "insurer_name": "保险公司名称",
+            "product_id": "44",
+            "product_name": "保险产品名称",
+            "insure_no": "233",
+            "order_no": "2222",
+            "product_total": "0.01",
+            "pay_money": "0.01",
+            "pay_datestamp": "1222",
+            "pay_type": "MWEB",
+            "pay_way": "ss"
+        }
+    }
+function judgebrowser(){
+	var browser={
+	  versions: function () {
+	    var u = navigator.userAgent, app = navigator.appVersion;
+	    return {     //移动终端浏览器版本信息
+	      trident: u.indexOf('Trident') > -1, //IE内核
+	      presto: u.indexOf('Presto') > -1, //opera内核
+	      webKit: u.indexOf('AppleWebKit') > -1, //苹果、谷歌内核
+	      gecko: u.indexOf('Gecko') > -1 && u.indexOf('KHTML') == -1, //火狐内核
+	      mobile: !!u.match(/AppleWebKit.*Mobile.*/), //是否为移动终端
+	      ios: !!u.match(/\(i[^;]+;( U;)? CPU.+Mac OS X/), //ios终端
+	      android: u.indexOf('Android') > -1 || u.indexOf('Linux') > -1, //android终端或uc浏览器
+	      iPhone: u.indexOf('iPhone') > -1, //是否为iPhone或者QQHD浏览器
+	      iPad: u.indexOf('iPad') > -1, //是否iPad
+	      webApp: u.indexOf('Safari') == -1 //是否web应该程序，没有头部与底部
+	    };
+	  }(),
+	  language: (navigator.browserLanguage || navigator.language).toLowerCase()
+	}
+	if (browser.versions.mobile) {//判断是否是移动设备打开
+	    var ua = navigator.userAgent.toLowerCase();//获取判断用的对象
+	    if (ua.match(/MicroMessenger/i) == "micromessenger") {
+	        //在微信中打开
+	        msg.data.pay_type="JSAPI";
+	    }else{
+			msg.data.pay_type="MWEB";
+		}
+	}
+}
+
+
+function gzhPay(){
+	judgebrowser();
+	$.ajax({
+        type:"POST",//方法类型
+        dataType:"json",//预期服务器返回的数据类型
+        url:"https://pay.zjbxjj.com/zpgw/wechat/dopay",
+        contentType:"application/json",  //缺失会出现URL编码，无法转成json对象
+        data:JSON.stringify(msg),
+        success:function(data){
+            console.info(data);
+            if(data.data.trade_type=="JSAPI"){
+            	pay(data.data);
+            	console.log("over..");
+            }else if(data.data.trade_type=="MWEB"){
+            	window.location.href=data.data.mweb_url;
+            }
+        },
+        error:function(e){
+            alert("错误！！"+JSON.stringify(e));
+        }
+    });
+};
+function pay(data){
+    if (typeof WeixinJSBridge == "undefined"){
+        if( document.addEventListener ){
+            document.addEventListener('WeixinJSBridgeReady', onBridgeReady, false);
+        }else if (document.attachEvent){
+            document.attachEvent('WeixinJSBridgeReady', onBridgeReady);
+            document.attachEvent('onWeixinJSBridgeReady', onBridgeReady);
+        }
+    }else{
+        onBridgeReady(data);
+    }
+}
+function onBridgeReady(data){
+    var appid=data.appid;
+    var timestamp=data.payTime;
+    var nocncestr=data.nonce_str;
+    var package="prepay_id="+data.prepay_id;
+    var paysign=data.sign;
+    alert(appid+"--"+timestamp+"--"+nocncestr+"--"+package+"--"+paysign);
+    WeixinJSBridge.invoke(
+        'getBrandWCPayRequest',
+        {
+            "appId" : appid,     //公众号名称，由商户传入
+            "timeStamp": timestamp,         //时间戳，自1970年以来的秒数
+            "nonceStr" : nocncestr, //随机串
+            "package" : package,
+            "signType" : "MD5",         //微信签名方式:
+            "paySign" : paysign    //微信签名
+        },
+        function(res){
+//          alert("res----"+res.err_msg);
+//          alert(JSON.stringify(res));
+            if(res.err_msg == "get_brand_wcpay_request:ok"){
+                location.href="/demo/success.jsp";
+            }else if(res.err_msg == "get_brand_wcpay_request:cancel"){
+                console.log("用户取消支付")
+            }else{
+                alert("支付失败!");
+                location.href="/demo/fail.jsp";
+            }
+        }
+    );
+};
+
+function zfbpay(){
+	msg.data={
+		"order_no": "2018918154426942",
+		"subject": "手机网站支付测试商品",
+		"pay_money": "0.01",
+		"body": "购买测试商品0.01元",
+		"pay_type": "mweb",
+		"app_num":"fsafssfdsassss",
+		"pay_type_num":"fsafssfdsassss"
+	};
+	$.ajax({
+        type:"POST",//方法类型
+        dataType:"json",//预期服务器返回的数据类型
+        url:"https://pay.zjbxjj.com/alipay/alipay/dopay",
+        contentType:"application/json",  //缺失会出现URL编码，无法转成json对象
+        data:JSON.stringify(msg),
+        success:function(data){
+        	console.log(data);
+        	console.log(222222222);
+            $("#back").html(data.data);
+        },
+        error:function(e){
+            alert("错误！！"+JSON.stringify(e));
+        }
+    });
+}
+</script>
